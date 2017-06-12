@@ -28,18 +28,22 @@ model =
 
 
 type Msg
-  = Increment
-  | Decrement
+  = Öka
+  | Minska
+  | Återställ
 
 
 update : Msg -> Model -> Model
 update msg model =
   case msg of
-    Increment ->
+    Öka ->
       model + 1
 
-    Decrement ->
+    Minska ->
       model - 1
+
+    Återställ ->
+      0
 
 
 
@@ -49,7 +53,8 @@ update msg model =
 view : Model -> Html Msg
 view model =
   div []
-    [ button [ onClick Decrement ] [ text "-" ]
+    [ button [ onClick Minska ] [ text "-" ]
     , div [] [ text (toString model) ]
-    , button [ onClick Increment ] [ text "+" ]
+    , button [ onClick Öka ] [ text "+" ]
+    , div [] [button [ onClick Återställ ] [ text "Återställ" ]]
     ]
