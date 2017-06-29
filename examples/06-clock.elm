@@ -61,7 +61,7 @@ view model =
     theDateNow = (Date.fromTime model)
     angleSeconds = angleCalculator (Date.second theDateNow)  15.0 60
     angleMinutes = angleCalculator (Date.minute theDateNow) 15.0 60
-    angleHours = angleCalculator ((Date.hour theDateNow) %  12) 3.0 12
+    angleHours = angleCalculator (analogHour theDateNow) 15.0 60
   in
     div [] [
         svg [ viewBox "0 0 100 100", width "300px" ]
@@ -78,6 +78,10 @@ view model =
 angleCalculator: Int -> Float -> Float -> Float
 angleCalculator time offset ticksPerLap =
     ((toFloat time) - offset) * 2.0 * pi / ticksPerLap
+
+analogHour:  Date.Date -> Int
+analogHour theDateNow =
+    (((Date.hour theDateNow) %  12) * 5 +  (Date.minute theDateNow) // 12 )
 
 hand: Float -> Float -> String -> Svg Msg
 hand angle length color =
