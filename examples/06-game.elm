@@ -236,5 +236,5 @@ game model =
 
 snakeView : Snake -> List (Svg Msg)
 snakeView snake =
-    [ circle [ cx (toString snakeView.head.x), cy (toString snakeView.head.y), r "5" ] []
+    [ circle [ cx (toString snake.head.x), cy (toString snake.head.y), r "5" ] []
     ]
