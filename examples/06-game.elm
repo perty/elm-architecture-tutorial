@@ -20,6 +20,10 @@ main =
         }
 
 
+speed =
+    100
+
+
 
 -- MODEL
 
@@ -27,6 +31,26 @@ main =
 type alias Model =
     { now : Time
     , direction : Direction
+    , snake : Snake
+    }
+
+
+type Direction
+    = NORTH
+    | SOUTH
+    | WEST
+    | EAST
+
+
+type alias Coord =
+    { x : Int
+    , y : Int
+    }
+
+
+type alias Snake =
+    { head : Coord
+    , tail : List Coord
     }
 
 
@@ -38,16 +62,19 @@ type Command
     | NONE
 
 
-type Direction
-    = NORTH
-    | SOUTH
-    | WEST
-    | EAST
+initialSnake : Snake
+initialSnake =
+    { head =
+        { x = 50
+        , y = 50
+        }
+    , tail = []
+    }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { now = 0, direction = WEST }, Cmd.none )
+    ( { now = 0, direction = WEST, snake = initialSnake }, Cmd.none )
 
 
 
@@ -71,7 +98,35 @@ update msg model =
 
 updateGameState : Model -> Time -> ( Model, Cmd Msg )
 updateGameState model newTime =
-    ( { model | now = newTime }, Cmd.none )
+    ( { model | now = newTime, snake = updateSnake model newTime }, Cmd.none )
+
+
+updateSnake : Model -> Time -> Snake
+updateSnake model newTime =
+    let
+        snake =
+            model.snake
+    in
+    case model.direction of
+        NORTH ->
+            conditionUpdate (snake.head.y > 1) 0 -1 snake
+
+        SOUTH ->
+            conditionUpdate (snake.head.y < 100) 0 1 snake
+
+        WEST ->
+            conditionUpdate (snake.head.x > 1) -1 0 snake
+
+        EAST ->
+            conditionUpdate (snake.head.x < 100) 1 0 snake
+
+
+conditionUpdate : Bool -> Int -> Int -> Snake -> Snake
+conditionUpdate condition updateX updateY snake =
+    if condition then
+        { snake | head = { y = snake.head.y + updateY, x = snake.head.x + updateX } }
+    else
+        snake
 
 
 updateDirection : Model -> Command -> ( Model, Cmd Msg )
@@ -105,7 +160,7 @@ newDirection model newDirection =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Time.every (5000 * millisecond) Tick
+        [ Time.every speed Tick
         , Keyboard.presses (\code -> Presses (codeToCommand code))
         ]
 
@@ -175,4 +230,11 @@ game model =
     , line
         [ x1 "50", y1 "50", x2 "100", y2 "50", stroke "black", transform rotate ]
         []
+    ]
+        ++ snakeView model.snake
+
+
+snakeView : Snake -> List (Svg Msg)
+snakeView snake =
+    [ circle [ cx (toString snakeView.head.x), cy (toString snakeView.head.y), r "5" ] []
     ]
