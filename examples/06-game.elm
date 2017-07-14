@@ -21,7 +21,7 @@ main =
 
 
 speed =
-    100
+    1000
 
 
 
@@ -30,9 +30,15 @@ speed =
 
 type alias Model =
     { now : Time
+    , gameState : GameState
     , direction : Direction
     , snake : Snake
     }
+
+
+type GameState
+    = RUN
+    | END
 
 
 type Direction
@@ -68,13 +74,17 @@ initialSnake =
         { x = 50
         , y = 50
         }
-    , tail = []
+    , tail =
+        [ { x = 54
+          , y = 50
+          }
+        ]
     }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { now = 0, direction = WEST, snake = initialSnake }, Cmd.none )
+    ( { now = 0, gameState = RUN, direction = WEST, snake = initialSnake }, Cmd.none )
 
 
 
@@ -90,43 +100,74 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Tick newTime ->
-            updateGameState model newTime
+            updateGame model newTime
 
         Presses command ->
             updateDirection model command
 
 
-updateGameState : Model -> Time -> ( Model, Cmd Msg )
-updateGameState model newTime =
-    ( { model | now = newTime, snake = updateSnake model newTime }, Cmd.none )
+updateGame : Model -> Time -> ( Model, Cmd Msg )
+updateGame model newTime =
+    ( case model.gameState of
+        RUN ->
+            { model | now = newTime, snake = updateSnake model, gameState = updateGameState model }
+
+        END ->
+            { model | now = newTime }
+    , Cmd.none
+    )
 
 
-updateSnake : Model -> Time -> Snake
-updateSnake model newTime =
+updateSnake : Model -> Snake
+updateSnake model =
     let
         snake =
             model.snake
     in
     case model.direction of
         NORTH ->
-            conditionUpdate (snake.head.y > 1) 0 -1 snake
+            moveSnake 0 -4 snake
 
         SOUTH ->
-            conditionUpdate (snake.head.y < 100) 0 1 snake
+            moveSnake 0 4 snake
 
         WEST ->
-            conditionUpdate (snake.head.x > 1) -1 0 snake
+            moveSnake -4 0 snake
 
         EAST ->
-            conditionUpdate (snake.head.x < 100) 1 0 snake
+            moveSnake 4 0 snake
 
 
-conditionUpdate : Bool -> Int -> Int -> Snake -> Snake
-conditionUpdate condition updateX updateY snake =
-    if condition then
-        { snake | head = { y = snake.head.y + updateY, x = snake.head.x + updateX } }
+moveSnake : Int -> Int -> Snake -> Snake
+moveSnake updateX updateY snake =
+    { snake | head = { y = snake.head.y + updateY, x = snake.head.x + updateX }, tail = moveTail snake.head snake.tail }
+
+
+moveTail : Coord -> List Coord -> List Coord
+moveTail head tail =
+    head :: List.take (List.length tail - 1) tail
+
+
+updateGameState : Model -> GameState
+updateGameState model =
+    if withinBounds model && notHittingSelf model then
+        RUN
     else
-        snake
+        END
+
+
+withinBounds : Model -> Bool
+withinBounds model =
+    let
+        head =
+            model.snake.head
+    in
+    (head.y > 4) && (head.y < 96) && (head.x > 4) && (head.x < 96)
+
+
+notHittingSelf : Model -> Bool
+notHittingSelf model =
+    True
 
 
 updateDirection : Model -> Command -> ( Model, Cmd Msg )
@@ -194,19 +235,20 @@ view model =
         [ Html.Attributes.style
             [ ( "padding", "10px" )
             , ( "border", "solid 1px" )
-            , ( "max-width", "300px" )
             ]
         ]
-        [ svg [ viewBox "0 0 100 100", width "300px" ]
-            (game model)
+        [ svg [ viewBox "0 0 100 100", width "500px" ]
+            (gameView model)
         , div []
             [ text (toString (Date.fromTime model.now))
+            , text " Game state: "
+            , text (toString model.gameState)
             ]
         ]
 
 
-game : Model -> List (Svg Msg)
-game model =
+gameView : Model -> List (Svg Msg)
+gameView model =
     let
         rotation =
             case model.direction of
@@ -225,7 +267,7 @@ game model =
         rotate =
             "rotate(" ++ toString rotation ++ ", 50, 50)"
     in
-    [ rect [ width "100", height "100", fill "#0B79CE" ]
+    [ rect [ width "100", height "100", fill "lightBlue" ]
         []
     , line
         [ x1 "50", y1 "50", x2 "100", y2 "50", stroke "black", transform rotate ]
@@ -236,5 +278,20 @@ game model =
 
 snakeView : Snake -> List (Svg Msg)
 snakeView snake =
-    [ circle [ cx (toString snake.head.x), cy (toString snake.head.y), r "5" ] []
+    headView snake ++ tailView snake
+
+
+headView : Snake -> List (Svg Msg)
+headView snake =
+    [ circle [ cx (toString snake.head.x), cy (toString snake.head.y), r "2" ] []
     ]
+
+
+tailView : Snake -> List (Svg Msg)
+tailView snake =
+    List.map tailPart snake.tail
+
+
+tailPart : Coord -> Svg Msg
+tailPart coord =
+    circle [ cx (toString coord.x), cy (toString coord.y), r "2", fill "green" ] []
