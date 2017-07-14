@@ -33,6 +33,7 @@ type alias Model =
     , gameState : GameState
     , direction : Direction
     , snake : Snake
+    , apple : Coord
     }
 
 
@@ -82,9 +83,16 @@ initialSnake =
     }
 
 
+initialApple : Coord
+initialApple =
+    { x = 10
+    , y = 30
+    }
+
+
 init : ( Model, Cmd Msg )
 init =
-    ( { now = 0, gameState = RUN, direction = WEST, snake = initialSnake }, Cmd.none )
+    ( { now = 0, gameState = RUN, direction = WEST, snake = initialSnake, apple = initialApple }, Cmd.none )
 
 
 
@@ -274,6 +282,7 @@ gameView model =
         []
     ]
         ++ snakeView model.snake
+        ++ appleView model.apple
 
 
 snakeView : Snake -> List (Svg Msg)
@@ -295,3 +304,9 @@ tailView snake =
 tailPart : Coord -> Svg Msg
 tailPart coord =
     circle [ cx (toString coord.x), cy (toString coord.y), r "2", fill "green" ] []
+
+
+appleView : Coord -> List (Svg Msg)
+appleView coord =
+    [ circle [ cx (toString coord.x), cy (toString coord.y), r "2", fill "red" ] []
+    ]
