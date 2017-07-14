@@ -31,7 +31,6 @@ speed =
 type alias Model =
     { now : Time
     , gameState : GameState
-    , direction : Direction
     , snake : Snake
     , apple : Coord
     }
@@ -56,7 +55,8 @@ type alias Coord =
 
 
 type alias Snake =
-    { head : Coord
+    { direction : Direction
+    , head : Coord
     , tail : List Coord
     }
 
@@ -71,7 +71,8 @@ type Command
 
 initialSnake : Snake
 initialSnake =
-    { head =
+    { direction = WEST
+    , head =
         { x = 50
         , y = 50
         }
@@ -92,7 +93,7 @@ initialApple =
 
 init : ( Model, Cmd Msg )
 init =
-    ( { now = 0, gameState = RUN, direction = WEST, snake = initialSnake, apple = initialApple }, Cmd.none )
+    ( { now = 0, gameState = RUN, snake = initialSnake, apple = initialApple }, Cmd.none )
 
 
 
@@ -128,27 +129,28 @@ updateGame model newTime =
 
 updateSnake : Model -> Snake
 updateSnake model =
-    let
-        snake =
-            model.snake
-    in
-    case model.direction of
+    case model.snake.direction of
         NORTH ->
-            moveSnake 0 -4 snake
+            moveSnake 0 -4 model.snake
 
         SOUTH ->
-            moveSnake 0 4 snake
+            moveSnake 0 4 model.snake
 
         WEST ->
-            moveSnake -4 0 snake
+            moveSnake -4 0 model.snake
 
         EAST ->
-            moveSnake 4 0 snake
+            moveSnake 4 0 model.snake
 
 
 moveSnake : Int -> Int -> Snake -> Snake
 moveSnake updateX updateY snake =
-    { snake | head = { y = snake.head.y + updateY, x = snake.head.x + updateX }, tail = moveTail snake.head snake.tail }
+    { snake | head = moveHead snake.head updateX updateY, tail = moveTail snake.head snake.tail }
+
+
+moveHead : Coord -> Int -> Int -> Coord
+moveHead head updateX updateY =
+    { y = head.y + updateY, x = head.x + updateX }
 
 
 moveTail : Coord -> List Coord -> List Coord
@@ -199,7 +201,12 @@ updateDirection model command =
 
 newDirection : Model -> Direction -> ( Model, Cmd Msg )
 newDirection model newDirection =
-    ( { model | direction = newDirection }, Cmd.none )
+    ( { model | snake = newSnakeDirection model.snake newDirection }, Cmd.none )
+
+
+newSnakeDirection : Snake -> Direction -> Snake
+newSnakeDirection snake newDirection =
+    { snake | direction = newDirection }
 
 
 
@@ -259,7 +266,7 @@ gameView : Model -> List (Svg Msg)
 gameView model =
     let
         rotation =
-            case model.direction of
+            case model.snake.direction of
                 NORTH ->
                     270
 
