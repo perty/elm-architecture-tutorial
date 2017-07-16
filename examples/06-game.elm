@@ -174,7 +174,7 @@ updateSnake model =
 
 moveSnake : Int -> Int -> Snake -> Int -> Snake
 moveSnake updateX updateY snake score =
-    { snake | head = moveHead snake.head updateX updateY, tail = moveTail snake.head snake.tail (score + 1) }
+    { snake | head = moveHead snake.head updateX updateY, tail = moveTail snake.head snake.tail score }
 
 
 moveHead : Coord -> Int -> Int -> Coord
@@ -201,7 +201,7 @@ withinBounds model =
         head =
             model.snake.head
     in
-    (head.y > 4) && (head.y < 96) && (head.x > 4) && (head.x < 96)
+    (head.y >= 4) && (head.y <= 96) && (head.x >= 4) && (head.x <= 96)
 
 
 notHittingSelf : Model -> Bool
@@ -335,9 +335,17 @@ gameView model =
     in
     [ rect [ width "100", height "100", fill "lightBlue" ]
         []
-    , line
-        [ x1 "50", y1 "50", x2 "100", y2 "50", stroke "black", transform rotate ]
-        []
+    , g [ stroke "black", transform rotate ]
+        [ line
+            [ x1 "50", y1 "50", x2 "60", y2 "50" ]
+            []
+        , line
+            [ x1 "50", y1 "50", x2 "40", y2 "45" ]
+            []
+        , line
+            [ x1 "50", y1 "50", x2 "40", y2 "55" ]
+            []
+        ]
     ]
         ++ snakeView model.snake
         ++ appleView model.apple
