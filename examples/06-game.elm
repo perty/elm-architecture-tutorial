@@ -6,8 +6,10 @@ import Debug
 import Html exposing (Html, div)
 import Html.Attributes
 import Keyboard exposing (..)
+import Random
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
+import Task
 import Time exposing (Time, millisecond)
 
 
@@ -38,6 +40,7 @@ type alias Model =
 
 type GameState
     = RUN
+    | EAT
     | END
 
 
@@ -73,12 +76,12 @@ initialSnake : Snake
 initialSnake =
     { direction = WEST
     , head =
-        { x = 50
-        , y = 50
+        { x = 48
+        , y = 48
         }
     , tail =
-        [ { x = 54
-          , y = 50
+        [ { x = 52
+          , y = 48
           }
         ]
     }
@@ -86,8 +89,8 @@ initialSnake =
 
 initialApple : Coord
 initialApple =
-    { x = 10
-    , y = 30
+    { x = 12
+    , y = 36
     }
 
 
@@ -103,6 +106,8 @@ init =
 type Msg
     = Tick Time
     | Presses Command
+    | EatApple
+    | NewApple ( Int, Int )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -114,6 +119,12 @@ update msg model =
         Presses command ->
             updateDirection model command
 
+        EatApple ->
+            eatApple model
+
+        NewApple ( x, y ) ->
+            newApple model (Coord (x * 4) (y * 4))
+
 
 updateGame : Model -> Time -> ( Model, Cmd Msg )
 updateGame model newTime =
@@ -121,10 +132,27 @@ updateGame model newTime =
         RUN ->
             { model | now = newTime, snake = updateSnake model, gameState = updateGameState model }
 
+        EAT ->
+            model
+
         END ->
             { model | now = newTime }
-    , Cmd.none
+    , nextCmd model
     )
+
+
+nextCmd : Model -> Cmd Msg
+nextCmd model =
+    if model.apple == model.snake.head then
+        send EatApple
+    else
+        Cmd.none
+
+
+send : msg -> Cmd msg
+send msg =
+    Task.succeed msg
+        |> Task.perform identity
 
 
 updateSnake : Model -> Snake
@@ -178,6 +206,26 @@ withinBounds model =
 notHittingSelf : Model -> Bool
 notHittingSelf model =
     True
+
+
+eatApple : Model -> ( Model, Cmd Msg )
+eatApple model =
+    ( { model | apple = { x = -10, y = -10 }, gameState = EAT }
+    , Random.generate NewApple randomPoint
+    )
+
+
+newApple : Model -> Coord -> ( Model, Cmd Msg )
+newApple model coord =
+    if (model.snake.head == coord) || List.member coord model.snake.tail then
+        ( model, Random.generate NewApple randomPoint )
+    else
+        ( { model | apple = { x = coord.x, y = coord.y }, gameState = RUN }, Cmd.none )
+
+
+randomPoint : Random.Generator ( Int, Int )
+randomPoint =
+    Random.pair (Random.int 1 24) (Random.int 1 24)
 
 
 updateDirection : Model -> Command -> ( Model, Cmd Msg )
