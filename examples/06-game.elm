@@ -23,7 +23,7 @@ main =
 
 
 speed =
-    1000
+    300
 
 
 
@@ -317,8 +317,8 @@ gameView : Model -> List (Svg Msg)
 gameView model =
     background
         ++ directionArrow model
-        ++ snakeView model.snake
         ++ appleView model.apple
+        ++ snakeView model.snake
 
 
 background : List (Svg Msg)
@@ -382,8 +382,24 @@ headView snake =
         translate =
             "translate(" ++ toString x ++ "," ++ toString y ++ ")"
     in
-    [ image [ xlinkHref "image/hampus.png", width (toString size), transform translate ] []
+    [ image [ xlinkHref (imageBasedOnDirection snake.direction), width (toString size), transform translate ] []
     ]
+
+
+imageBasedOnDirection : Direction -> String
+imageBasedOnDirection direction =
+    case direction of
+        NORTH ->
+            "image/hampus-north.png"
+
+        SOUTH ->
+            "image/hampus-south.png"
+
+        WEST ->
+            "image/hampus-west.png"
+
+        EAST ->
+            "image/hampus-east.png"
 
 
 tailView : Snake -> List (Svg Msg)
