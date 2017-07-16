@@ -315,6 +315,21 @@ view model =
 
 gameView : Model -> List (Svg Msg)
 gameView model =
+    background
+        ++ directionArrow model
+        ++ snakeView model.snake
+        ++ appleView model.apple
+
+
+background : List (Svg Msg)
+background =
+    [ rect [ width "100", height "100", fill "lightBlue" ]
+        []
+    ]
+
+
+directionArrow : Model -> List (Svg Msg)
+directionArrow model =
     let
         rotation =
             case model.snake.direction of
@@ -333,9 +348,7 @@ gameView model =
         rotate =
             "rotate(" ++ toString rotation ++ ", 50, 50)"
     in
-    [ rect [ width "100", height "100", fill "lightBlue" ]
-        []
-    , g [ stroke "black", transform rotate ]
+    [ g [ stroke "black", transform rotate ]
         [ line
             [ x1 "50", y1 "50", x2 "60", y2 "50" ]
             []
@@ -347,18 +360,29 @@ gameView model =
             []
         ]
     ]
-        ++ snakeView model.snake
-        ++ appleView model.apple
 
 
 snakeView : Snake -> List (Svg Msg)
 snakeView snake =
-    headView snake ++ tailView snake
+    tailView snake ++ headView snake
 
 
 headView : Snake -> List (Svg Msg)
 headView snake =
-    [ circle [ cx (toString snake.head.x), cy (toString snake.head.y), r "2" ] []
+    let
+        size =
+            12
+
+        y =
+            snake.head.y - size // 2
+
+        x =
+            snake.head.x - size // 2
+
+        translate =
+            "translate(" ++ toString x ++ "," ++ toString y ++ ")"
+    in
+    [ image [ xlinkHref "image/hampus.png", width (toString size), transform translate ] []
     ]
 
 
