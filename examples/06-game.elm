@@ -23,7 +23,7 @@ main =
 
 
 speed =
-    300
+    200
 
 
 
@@ -189,7 +189,7 @@ moveTail head tail tailLength =
 
 updateGameState : Model -> GameState
 updateGameState model =
-    if withinBounds model && notHittingSelf model then
+    if withinBounds model && not (hittingSelf model) then
         RUN
     else
         END
@@ -204,9 +204,9 @@ withinBounds model =
     (head.y >= 4) && (head.y <= 96) && (head.x >= 4) && (head.x <= 96)
 
 
-notHittingSelf : Model -> Bool
-notHittingSelf model =
-    True
+hittingSelf : Model -> Bool
+hittingSelf model =
+    List.any (\m -> m == model.snake.head) model.snake.tail
 
 
 eatApple : Model -> ( Model, Cmd Msg )
