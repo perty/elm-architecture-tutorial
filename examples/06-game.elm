@@ -160,21 +160,21 @@ updateSnake : Model -> Snake
 updateSnake model =
     case model.snake.direction of
         NORTH ->
-            moveSnake 0 -4 model.snake
+            moveSnake 0 -4 model.snake model.score
 
         SOUTH ->
-            moveSnake 0 4 model.snake
+            moveSnake 0 4 model.snake model.score
 
         WEST ->
-            moveSnake -4 0 model.snake
+            moveSnake -4 0 model.snake model.score
 
         EAST ->
-            moveSnake 4 0 model.snake
+            moveSnake 4 0 model.snake model.score
 
 
-moveSnake : Int -> Int -> Snake -> Snake
-moveSnake updateX updateY snake =
-    { snake | head = moveHead snake.head updateX updateY, tail = moveTail snake.head snake.tail }
+moveSnake : Int -> Int -> Snake -> Int -> Snake
+moveSnake updateX updateY snake score =
+    { snake | head = moveHead snake.head updateX updateY, tail = moveTail snake.head snake.tail (score + 1) }
 
 
 moveHead : Coord -> Int -> Int -> Coord
@@ -182,9 +182,9 @@ moveHead head updateX updateY =
     { y = head.y + updateY, x = head.x + updateX }
 
 
-moveTail : Coord -> List Coord -> List Coord
-moveTail head tail =
-    head :: List.take (List.length tail - 1) tail
+moveTail : Coord -> List Coord -> Int -> List Coord
+moveTail head tail tailLength =
+    head :: List.take tailLength tail
 
 
 updateGameState : Model -> GameState
