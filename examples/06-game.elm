@@ -70,6 +70,7 @@ type Command
     | UP
     | RIGHT
     | DOWN
+    | START
     | NONE
 
 
@@ -95,9 +96,13 @@ initialApple =
     }
 
 
+initialModel =
+    { now = 0, score = 0, gameState = RUN, snake = initialSnake, apple = initialApple }
+
+
 init : ( Model, Cmd Msg )
 init =
-    ( { now = 0, score = 0, gameState = RUN, snake = initialSnake, apple = initialApple }, Cmd.none )
+    ( initialModel, Cmd.none )
 
 
 
@@ -244,6 +249,9 @@ updateDirection model command =
         DOWN ->
             newDirection model SOUTH
 
+        START ->
+            ( initialModel, Cmd.none )
+
         NONE ->
             ( model, Cmd.none )
 
@@ -285,6 +293,9 @@ codeToCommand code =
         115 ->
             DOWN
 
+        32 ->
+            START
+
         _ ->
             NONE
 
@@ -315,17 +326,34 @@ view model =
 
 gameView : Model -> List (Svg Msg)
 gameView model =
-    background
+    background model
         ++ directionArrow model
         ++ appleView model.apple
         ++ snakeView model.snake
 
 
-background : List (Svg Msg)
-background =
+background : Model -> List (Svg Msg)
+background model =
     [ rect [ width "100", height "100", fill "lightBlue" ]
         []
+    , text_ [ x "0", y "25", fontFamily "Verdana", fontSize "7", fill "black" ]
+        [ text
+            (messageBasedOnState model)
+        ]
     ]
+
+
+messageBasedOnState : Model -> String
+messageBasedOnState model =
+    case model.gameState of
+        RUN ->
+            "Hampus must be 30!"
+
+        EAT ->
+            "Eating"
+
+        END ->
+            "Press space. Then WASD!"
 
 
 directionArrow : Model -> List (Svg Msg)
