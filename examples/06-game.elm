@@ -192,8 +192,24 @@ moveHead head updateX updateY =
 
 
 moveTail : Coord -> List Coord -> Int -> List Coord
-moveTail head tail tailLength =
-    head :: List.take tailLength tail
+moveTail head tail score =
+    head :: List.take (tailLengthFromScore score) tail
+
+
+tailLengthFromScore : Int -> Int
+tailLengthFromScore score =
+    if score < 5 then
+        score
+    else if score < 10 then
+        score + 5
+    else if score < 15 then
+        score + 10
+    else if score < 20 then
+        score + 15
+    else if score < 25 then
+        score + 20
+    else
+        score + 25
 
 
 updateGameState : Model -> GameState
