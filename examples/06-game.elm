@@ -32,6 +32,7 @@ speed =
 
 type alias Model =
     { now : Time
+    , score : Int
     , gameState : GameState
     , snake : Snake
     , apple : Coord
@@ -96,7 +97,7 @@ initialApple =
 
 init : ( Model, Cmd Msg )
 init =
-    ( { now = 0, gameState = RUN, snake = initialSnake, apple = initialApple }, Cmd.none )
+    ( { now = 0, score = 0, gameState = RUN, snake = initialSnake, apple = initialApple }, Cmd.none )
 
 
 
@@ -210,7 +211,7 @@ notHittingSelf model =
 
 eatApple : Model -> ( Model, Cmd Msg )
 eatApple model =
-    ( { model | apple = { x = -10, y = -10 }, gameState = EAT }
+    ( { model | apple = { x = -10, y = -10 }, gameState = EAT, score = model.score + 1 }
     , Random.generate NewApple randomPoint
     )
 
@@ -306,6 +307,8 @@ view model =
             [ text (toString (Date.fromTime model.now))
             , text " Game state: "
             , text (toString model.gameState)
+            , text " Score: "
+            , text (toString model.score)
             ]
         ]
 
