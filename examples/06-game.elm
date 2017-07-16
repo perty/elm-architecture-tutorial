@@ -42,6 +42,7 @@ type alias Model =
 type GameState
     = RUN
     | EAT
+    | WON
     | END
 
 
@@ -141,6 +142,9 @@ updateGame model newTime =
         EAT ->
             model
 
+        WON ->
+            { model | now = newTime }
+
         END ->
             { model | now = newTime }
     , nextCmd model
@@ -216,9 +220,12 @@ hittingSelf model =
 
 eatApple : Model -> ( Model, Cmd Msg )
 eatApple model =
-    ( { model | apple = { x = -10, y = -10 }, gameState = EAT, score = model.score + 1 }
-    , Random.generate NewApple randomPoint
-    )
+    if model.score >= 29 then
+        ( { model | gameState = WON, score = 30 }, Cmd.none )
+    else
+        ( { model | gameState = EAT, score = model.score + 1 }
+        , Random.generate NewApple randomPoint
+        )
 
 
 newApple : Model -> Coord -> ( Model, Cmd Msg )
@@ -336,9 +343,15 @@ background : Model -> List (Svg Msg)
 background model =
     [ rect [ width "100", height "100", fill "lightBlue" ]
         []
-    , text_ [ x "0", y "25", fontFamily "Verdana", fontSize "7", fill "black" ]
+    , text_ [ x "10", y "25", fontFamily "Verdana", fontSize "7", fill "black" ]
         [ text
             (messageBasedOnState model)
+        ]
+    , text_ [ x "30", y "75", fontFamily "Verdana", fontSize "7", fill "black" ]
+        [ text
+            ("Age: "
+                ++ toString model.score
+            )
         ]
     ]
 
@@ -351,6 +364,9 @@ messageBasedOnState model =
 
         EAT ->
             "Eating"
+
+        WON ->
+            "Congratulations!"
 
         END ->
             "Press space. Then WASD!"
